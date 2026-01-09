@@ -1,6 +1,8 @@
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
+const adminMiddleware = require("./middleware/adminMiddleware");
+
 
 const app = express();
 
@@ -17,5 +19,17 @@ app.get("/api/protected", authMiddleware, (req, res) => {
     user: req.user
   });
 });
+app.get(
+  "/api/admin",
+  authMiddleware,
+  adminMiddleware,
+  (req, res) => {
+    res.json({
+      message: "Admin access granted",
+      user: req.user
+    });
+  }
+);
+
 module.exports = app;
 
