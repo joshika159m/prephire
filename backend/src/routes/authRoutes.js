@@ -1,10 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
 const db = require("../db");
 
 const router = express.Router();
+
+// ONE secret, used everywhere
+const JWT_SECRET = "supersecret123";
 
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -19,7 +21,7 @@ router.post("/register", async (req, res) => {
     const sql =
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
 
-    db.query(sql, [name, email, hashedPassword], (err, result) => {
+    db.query(sql, [name, email, hashedPassword], (err) => {
       if (err) {
         if (err.code === "ER_DUP_ENTRY") {
           return res.status(409).json({ message: "Email already exists" });
@@ -29,7 +31,7 @@ router.post("/register", async (req, res) => {
 
       res.status(201).json({ message: "User registered successfully" });
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -55,14 +57,14 @@ router.post("/login", (req, res) => {
     const user = results[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // JWT is created ONLY here
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      "JWT_SECRET_KEY",
+      JWT_SECRET,
       { expiresIn: "1h" }
     );
 
@@ -72,6 +74,5 @@ router.post("/login", (req, res) => {
     });
   });
 });
-
 
 module.exports = router;

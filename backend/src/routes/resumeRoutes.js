@@ -93,6 +93,58 @@ router.get(
     });
   }
 );
+router.patch(
+  "/:id/review",
+  authMiddleware,
+  adminMiddleware,
+  (req, res) => {
+    const resumeId = req.params.id;
+    const { status, feedback } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    const sql =
+      "UPDATE resumes SET status = ?, feedback = ? WHERE id = ?";
+
+    db.query(sql, [status, feedback || null, resumeId], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+
+      res.json({ message: "Resume reviewed successfully" });
+    });
+  }
+);
+
+
+router.get(
+  "/my",
+  authMiddleware,
+  (req, res) => {
+    const userId = req.user.id;
+
+    const sql = `
+      SELECT id, filename, status, feedback, uploaded_at
+      FROM resumes
+      WHERE user_id = ?
+      ORDER BY uploaded_at DESC
+    `;
+
+    db.query(sql, [userId], (err, results) => {
+      if (err) {
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      res.json(results);
+    });
+  }
+);
 
 
 
