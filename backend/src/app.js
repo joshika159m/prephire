@@ -2,6 +2,7 @@ const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 const adminMiddleware = require("./middleware/adminMiddleware");
+const resumeRoutes = require("./routes/resumeRoutes");
 
 
 const app = express();
@@ -30,6 +31,8 @@ app.get(
     });
   }
 );
+app.use("/api/resume", resumeRoutes);
+
 
 module.exports = app;
 
