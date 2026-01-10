@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import Navbar from "../components/Navbar";
 
 function UserDashboard() {
   const [file, setFile] = useState(null);
@@ -33,95 +34,93 @@ function UserDashboard() {
     formData.append("resume", file);
 
     await axios.post("/resume/upload", formData);
-    setMessage("Resume uploaded successfully");
+    setMessage("Resume uploaded");
     setFile(null);
     fetchResumes();
   };
 
-  const logout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
-
   return (
-    <div className="container mt-4">
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <div className="d-flex justify-content-between mb-3">
-            <h4>User Dashboard</h4>
-            <button className="btn btn-danger btn-sm" onClick={logout}>
-              Logout
-            </button>
+    <>
+      <Navbar role="USER" />
+
+      <div className="container mt-4">
+        <div className="card shadow-sm mb-4">
+          <div className="card-body">
+            <h6>Profile</h6>
+            <p className="mb-1 text-muted">
+              Email: {localStorage.getItem("email") || "User"}
+            </p>
+            <p className="mb-0 text-muted">Total Resumes: {resumes.length}</p>
           </div>
+        </div>
 
-          {message && <div className="alert alert-info">{message}</div>}
+        {message && <div className="alert alert-info">{message}</div>}
 
-          <form onSubmit={handleUpload} className="mb-4">
-            <div className="input-group">
-              <input
-                type="file"
-                className="form-control"
-                onChange={(e) => setFile(e.target.files[0])}
-              />
-              <button className="btn btn-primary">Upload</button>
-            </div>
-          </form>
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <form onSubmit={handleUpload} className="mb-4">
+              <div className="input-group">
+                <input
+                  type="file"
+                  className="form-control"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+                <button className="btn btn-primary">Upload</button>
+              </div>
+            </form>
 
-          <h5 className="mb-3">Resume History</h5>
+            <h5>Resume History</h5>
 
-          {resumes.length === 0 ? (
-            <div className="alert alert-secondary">
-              You haven’t uploaded any resumes yet.
-            </div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-hover align-middle">
-                <thead>
-                  <tr>
-                    <th>File</th>
-                    <th>Status</th>
-                    <th>Decision</th>
-                    <th>Feedback</th>
-                    <th>Uploaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {resumes.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.filename}</td>
-
-                      <td>
-                        <span className={`badge ${statusColor[r.status]}`}>
-                          {r.status}
-                        </span>
-                      </td>
-
-                      <td>
-                        {r.decision ? (
-                          <span
-                            className={`badge ${decisionColor[r.decision]}`}
-                          >
-                            {r.decision}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-
-                      <td className="text-muted">
-                        {r.feedback || "No feedback yet"}
-                      </td>
-
-                      <td>{new Date(r.uploaded_at).toLocaleString()}</td>
+            {resumes.length === 0 ? (
+              <div className="alert alert-secondary">
+                No resumes uploaded yet.
+              </div>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-hover align-middle">
+                  <thead>
+                    <tr>
+                      <th>File</th>
+                      <th>Status</th>
+                      <th>Decision</th>
+                      <th>Feedback</th>
+                      <th>Uploaded</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {resumes.map((r) => (
+                      <tr key={r.id}>
+                        <td>{r.filename}</td>
+                        <td>
+                          <span className={`badge ${statusColor[r.status]}`}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td>
+                          {r.decision ? (
+                            <span
+                              className={`badge ${decisionColor[r.decision]}`}
+                            >
+                              {r.decision}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="text-muted">
+                          {r.feedback || "No feedback yet"}
+                        </td>
+                        <td>{new Date(r.uploaded_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
