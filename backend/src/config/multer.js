@@ -17,6 +17,7 @@ const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
 
   if (allowedTypes.includes(ext)) {
+
     cb(null, true);
   } else {
     cb(new Error("Only PDF and DOCX allowed"));

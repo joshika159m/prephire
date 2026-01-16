@@ -85,6 +85,7 @@ function UserDashboard() {
                       <th>Decision</th>
                       <th>Feedback</th>
                       <th>Uploaded</th>
+                  <th>Reviewed On</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -111,6 +112,12 @@ function UserDashboard() {
                           {r.feedback || "No feedback yet"}
                         </td>
                         <td>{new Date(r.uploaded_at).toLocaleString()}</td>
+<td>
+  {r.reviewed_at
+    ? new Date(r.reviewed_at).toLocaleString()
+    : "-"}
+</td>
+
                       </tr>
                     ))}
                   </tbody>

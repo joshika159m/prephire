@@ -46,9 +46,11 @@ router.post("/login", (req, res) => {
   const sql = "SELECT * FROM users WHERE email = ?";
 
   db.query(sql, [email], async (err, results) => {
-    if (err) {
-      return res.status(500).json({ message: "Database error" });
-    }
+   if (err) {
+  console.error("LOGIN DB ERROR:", err);
+  return res.status(500).json({ message: "Database error" });
+}
+
 
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });

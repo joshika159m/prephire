@@ -5,6 +5,8 @@ const adminMiddleware = require("../middleware/adminMiddleware");
 const db = require("../db");
 const path = require("path");
 const fs = require("fs");
+const sendReviewEmail = require("../utils/email");
+
 
 const router = express.Router();
 
@@ -40,7 +42,12 @@ router.get(
   authMiddleware,
   adminMiddleware,
   (req, res) => {
-    const sql = `
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = (page - 1) * limit;
+
+    const countSql = "SELECT COUNT(*) AS total FROM resumes";
+    const dataSql = `
       SELECT 
         resumes.id,
         resumes.filename,
@@ -52,16 +59,33 @@ router.get(
       FROM resumes
       JOIN users ON resumes.user_id = users.id
       ORDER BY resumes.uploaded_at DESC
+      LIMIT ? OFFSET ?
     `;
 
-    db.query(sql, (err, results) => {
+    db.query(countSql, (err, countResult) => {
       if (err) {
         return res.status(500).json({ message: "Database error" });
       }
-      res.json(results);
+
+      const totalCount = countResult[0].total;
+      const totalPages = Math.ceil(totalCount / limit);
+
+      db.query(dataSql, [limit, offset], (err, results) => {
+        if (err) {
+          return res.status(500).json({ message: "Database error" });
+        }
+
+        res.json({
+          data: results,
+          page,
+          totalPages,
+          totalCount,
+        });
+      });
     });
   }
 );
+
 
 /* ================= ADMIN: DOWNLOAD ================= */
 router.get(
@@ -96,35 +120,54 @@ router.patch(
   "/:id/review",
   authMiddleware,
   adminMiddleware,
-  (req, res) => {
+  async (req, res) => {
     const resumeId = req.params.id;
     const { decision, feedback } = req.body;
 
     if (!decision) {
-      return res.status(400).json({ message: "Decision is required" });
+      return res.status(400).json({ message: "Decision required" });
     }
 
-    const sql = `
+    const updateSql = `
       UPDATE resumes
       SET status = 'REVIEWED',
           decision = ?,
-          feedback = ?
+          feedback = ?,
+          reviewed_at = NOW()
       WHERE id = ?
     `;
 
-    db.query(sql, [decision, feedback || null, resumeId], (err, result) => {
+    db.query(updateSql, [decision, feedback || null, resumeId], async (err) => {
       if (err) {
         return res.status(500).json({ message: "Database error" });
       }
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Resume not found" });
-      }
+      const userSql = `
+        SELECT users.email
+        FROM resumes
+        JOIN users ON resumes.user_id = users.id
+        WHERE resumes.id = ?
+      `;
+
+      db.query(userSql, [resumeId], async (err, result) => {
+        if (!err && result.length > 0) {
+          try {
+            await sendReviewEmail({
+              to: result[0].email,
+              decision,
+              feedback,
+            });
+          } catch (e) {
+            console.error("Email failed:", e.message);
+          }
+        }
+      });
 
       res.json({ message: "Resume reviewed successfully" });
     });
   }
 );
+
 
 /* ================= USER: MY RESUMES ================= */
 router.get(

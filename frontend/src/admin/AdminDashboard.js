@@ -7,6 +7,8 @@ function AdminDashboard() {
   const [reviewData, setReviewData] = useState({});
   const [filter, setFilter] = useState("ALL");
   const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const statusColor = {
     PENDING: "bg-warning text-dark",
@@ -18,14 +20,16 @@ function AdminDashboard() {
     REJECTED: "bg-danger",
   };
 
-  const fetchResumes = async () => {
-    const res = await axios.get("/resume/all");
-    setResumes(res.data);
+  const fetchResumes = async (pageNumber = 1) => {
+    const res = await axios.get(`/resume/all?page=${pageNumber}&limit=5`);
+    setResumes(res.data.data);
+    setPage(res.data.page);
+    setTotalPages(res.data.totalPages);
   };
 
   useEffect(() => {
-    fetchResumes();
-  }, []);
+    fetchResumes(page);
+  }, [page]);
 
   const filteredResumes = resumes.filter((r) => {
     if (filter === "ALL") return true;
@@ -72,6 +76,7 @@ function AdminDashboard() {
               status: "REVIEWED",
               decision: data.decision,
               feedback: data.feedback || "",
+              reviewed_at: new Date().toISOString(),
             }
           : r
       )
@@ -142,6 +147,7 @@ function AdminDashboard() {
                         <span className={`badge ${statusColor[r.status]}`}>
                           {r.status}
                         </span>
+
                         {r.decision && (
                           <div className="mt-1">
                             <span
@@ -149,6 +155,13 @@ function AdminDashboard() {
                             >
                               {r.decision}
                             </span>
+
+                            {r.reviewed_at && (
+                              <div className="text-muted small mt-1">
+                                Reviewed on{" "}
+                                {new Date(r.reviewed_at).toLocaleString()}
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>
@@ -210,11 +223,54 @@ function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
-
-              {filteredResumes.length === 0 && (
-                <div className="alert alert-secondary">No resumes found.</div>
-              )}
             </div>
+
+            {/* PAGINATION — OUTSIDE table-responsive */}
+            <nav>
+              <ul className="pagination justify-content-center">
+                <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Previous
+                  </button>
+                </li>
+
+                {[...Array(totalPages)].map((_, i) => (
+                  <li
+                    key={i}
+                    className={`page-item ${
+                      page === i + 1 ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+
+                <li
+                  className={`page-item ${
+                    page === totalPages ? "disabled" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+
+            {filteredResumes.length === 0 && (
+              <div className="alert alert-secondary">No resumes found.</div>
+            )}
           </div>
         </div>
       </div>
