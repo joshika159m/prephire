@@ -61,7 +61,6 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
             <div className="mb-3">
               <label className="form-label">Password</label>
               <input
@@ -73,7 +72,6 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-
             <button className="btn btn-primary w-100" disabled={loading}>
               {loading ? "Signing in..." : "Login"}
             </button>
