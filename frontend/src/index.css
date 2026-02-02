@@ -1,20 +1,33 @@
 body {
-  background-color: #f8f9fa;
+  background-color: #f4f6f9;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 .card {
-  border-radius: 10px;
+  border-radius: 12px;
+}
+
+.navbar-brand {
+  letter-spacing: 0.5px;
 }
 
 .table th {
   background-color: #f1f3f5;
+  font-weight: 600;
 }
 
 .badge {
-  font-size: 0.85rem;
-  padding: 0.45em 0.65em;
+  font-size: 0.8rem;
 }
 
 textarea {
   resize: vertical;
+}
+footer {
+  align-items: end;
+  font-size: 1rem;
+}
+
+.nav-link {
+  cursor: pointer;
 }

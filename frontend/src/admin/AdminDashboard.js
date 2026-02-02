@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
-import Navbar from "../components/Navbar";
 
 function AdminDashboard() {
   const [resumes, setResumes] = useState([]);
@@ -43,7 +42,6 @@ function AdminDashboard() {
     const res = await axios.get(`/resume/download/${id}`, {
       responseType: "blob",
     });
-
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement("a");
     link.href = url;
@@ -53,6 +51,7 @@ function AdminDashboard() {
     link.remove();
   };
 
+  // ✅ FIXED: no fake reviewed_at
   const submitReview = async (id) => {
     const data = reviewData[id];
 
@@ -68,19 +67,8 @@ function AdminDashboard() {
 
     setMessage("Review submitted");
 
-    setResumes((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              status: "REVIEWED",
-              decision: data.decision,
-              feedback: data.feedback || "",
-              reviewed_at: new Date().toISOString(),
-            }
-          : r
-      )
-    );
+    // 🔥 REFRESH FROM BACKEND (SINGLE SOURCE OF TRUTH)
+    fetchResumes(page);
 
     setReviewData((prev) => {
       const copy = { ...prev };
@@ -91,8 +79,6 @@ function AdminDashboard() {
 
   return (
     <>
-      <Navbar role="ADMIN" />
-
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
@@ -129,7 +115,7 @@ function AdminDashboard() {
 
             <div className="table-responsive">
               <table className="table table-hover align-middle">
-                <thead>
+                <thead className="table-light">
                   <tr>
                     <th>User</th>
                     <th>Status</th>
@@ -225,7 +211,6 @@ function AdminDashboard() {
               </table>
             </div>
 
-            {/* PAGINATION — OUTSIDE table-responsive */}
             <nav>
               <ul className="pagination justify-content-center">
                 <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
@@ -240,9 +225,7 @@ function AdminDashboard() {
                 {[...Array(totalPages)].map((_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${
-                      page === i + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${page === i + 1 ? "active" : ""}`}
                   >
                     <button
                       className="page-link"
