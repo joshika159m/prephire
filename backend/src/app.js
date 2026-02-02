@@ -9,11 +9,12 @@ const adminMiddleware = require("./middleware/adminMiddleware");
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://prephire.vercel.app"],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
